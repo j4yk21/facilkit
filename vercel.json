@@ -1,0 +1,6 @@
+{
+  "rewrites": [
+    { "source": "/app", "destination": "/facilkit-app.html" },
+    { "source": "/", "destination": "/facilkit.html" }
+  ]
+}
