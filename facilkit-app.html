@@ -191,7 +191,7 @@ input,textarea,select{font-family:'DM Sans',sans-serif}
 /* ── MODAL ── */
 .modal-ov{position:fixed;inset:0;background:rgba(26,26,26,.6);backdrop-filter:blur(4px);z-index:2000;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;visibility:hidden;transition:opacity .25s,visibility .25s}
 .modal-ov.open{opacity:1;visibility:visible}
-.modal-box{background:#fff;border-radius:var(--r24);max-width:600px;width:100%;max-height:88vh;overflow-y:auto;box-shadow:var(--sh2);transform:translateY(16px) scale(.97);transition:transform .3s cubic-bezier(.34,1.56,.64,1)}
+.modal-box{background:#fff;border-radius:var(--r24);max-width:800px;width:100%;max-height:96vh;overflow-y:auto;box-shadow:var(--sh2);transform:translateY(16px) scale(.97);transition:transform .3s cubic-bezier(.34,1.56,.64,1)}
 .modal-ov.open .modal-box{transform:translateY(0) scale(1)}
 .modal-hdr{padding:28px 32px 20px;border-bottom:1px solid var(--cream-dark);position:sticky;top:0;background:#fff;z-index:1;border-radius:var(--r24) var(--r24) 0 0;display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
 .modal-title{font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:700;color:var(--ink)}
@@ -652,6 +652,7 @@ input,textarea,select{font-family:'DM Sans',sans-serif}
           <button class="btn btn-ghost btn-sm" onclick="parkingClear()">🗑 Vider</button>
         </div>
       </div>
+      <input class="input" id="parking-title" placeholder="Titre de la séance ou de l'atelier…" oninput="PARK.saveTitle()" style="width:100%;margin-bottom:10px">
       <div style="display:flex;gap:10px;margin-bottom:20px">
         <input class="input" id="parking-inp" placeholder="Une idée, un sujet à traiter plus tard…" onkeydown="parkingKeydown(event)" style="flex:1">
         <select class="input" id="parking-cat" style="width:150px">
@@ -1316,7 +1317,11 @@ const PARK = {
   items:[],
   catLabels:{idee:'💡 Idée',question:'❓ Question',action:'✅ Action',blocage:'⚡ Blocage'},
   save(){ try{localStorage.setItem('fk-park',JSON.stringify(PARK.items));}catch(e){} },
-  load(){ try{const s=localStorage.getItem('fk-park');if(s){PARK.items=JSON.parse(s);PARK.render();}}catch(e){} },
+  saveTitle(){ try{localStorage.setItem('fk-park-title',document.getElementById('parking-title').value);}catch(e){} },
+  load(){
+    try{const s=localStorage.getItem('fk-park');if(s){PARK.items=JSON.parse(s);PARK.render();}}catch(e){}
+    try{const t=localStorage.getItem('fk-park-title');if(t){document.getElementById('parking-title').value=t;}}catch(e){}
+  },
   add(text,cat){ if(!text.trim()) return; PARK.items.push({id:Date.now(),text:text.trim(),cat,ts:new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}); PARK.save(); PARK.render(); },
   remove(id){ PARK.items=PARK.items.filter(i=>i.id!==id); PARK.save(); PARK.render(); },
   clear(){ if(PARK.items.length&&!confirm('Vider tout le parking ?')) return; PARK.items=[]; PARK.save(); PARK.render(); },
@@ -1337,7 +1342,8 @@ const PARK = {
     const {jsPDF}=window.jspdf;
     const doc=new jsPDF('p','mm','a4');
     const M=20;
-    pdfHeader(doc,'PARKING','Notes en attente');
+    const titre=document.getElementById('parking-title').value.trim();
+    pdfHeader(doc,'PARKING',titre||'Notes en attente');
     doc.setFontSize(9);doc.setFont('helvetica','normal');doc.setTextColor(138,128,120);
     doc.text(`Généré le ${new Date().toLocaleString('fr-FR')}`,M,36);
     const rows=PARK.items.map(i=>[PARK.catLabels[i.cat],i.text,i.ts]);
