@@ -6,7 +6,8 @@
 <title>FaciliKit — Outils live</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <style>
 :root{--cream:#F5F0E8;--cream-dark:#EBE4D6;--cream-mid:#E0D8C8;--terra:#C96B3A;--terra-d:#A8542A;--sage:#6B8F71;--sage-d:#4E6E54;--ink:#1A1A1A;--ink-s:#3D3730;--gray:#8A8078;--gold:#C4943A;--blue:#5B7FA6;--red:#B85450;--r8:8px;--r12:12px;--r16:16px;--r24:24px;--sh:0 4px 20px rgba(0,0,0,.09);--sh2:0 12px 40px rgba(0,0,0,.13);--tr:.22s cubic-bezier(.4,0,.2,1)}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -942,25 +943,25 @@ function paroleAdd(){ const inp=document.getElementById('parole-inp'); PA.add(in
 function paroleKeydown(e){ if(e.key==='Enter') paroleAdd(); }
 function paroleReset(){ PA.reset(); }
 function parolePrint(){
-  const tot=PA.total();
-  const rows=PA.parts.map(p=>`<tr><td style="padding:9px 14px;border-bottom:1px solid #EBE4D6">${escHtml(p.name)}</td><td style="padding:9px 14px;border-bottom:1px solid #EBE4D6">${fmtSec(p.time)}</td><td style="padding:9px 14px;border-bottom:1px solid #EBE4D6">${Math.round(p.time/(tot||1)*100)}%</td></tr>`).join('');
-  const inner=`
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #C96B3A;padding-bottom:14px;margin-bottom:18px">
-      <div><div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#C96B3A;margin-bottom:6px">Rapport d'atelier</div>
-      <div style="font-size:1.6rem;font-weight:700;color:#1A1A1A">Temps de parole</div></div>
-      <div style="font-size:1.1rem;font-weight:700;color:#C96B3A">FaciliKit</div>
-    </div>
-    <p style="color:#8A8078;font-size:.8rem;margin-bottom:16px">Généré le ${new Date().toLocaleString('fr-FR')}</p>
-    <table style="width:100%;border-collapse:collapse">
-      <thead><tr>
-        <th style="background:#1A1A1A;color:#fff;text-align:left;padding:9px 14px;font-size:11px;text-transform:uppercase;letter-spacing:.05em">Participant</th>
-        <th style="background:#1A1A1A;color:#fff;text-align:left;padding:9px 14px;font-size:11px;text-transform:uppercase;letter-spacing:.05em">Temps</th>
-        <th style="background:#1A1A1A;color:#fff;text-align:left;padding:9px 14px;font-size:11px;text-transform:uppercase;letter-spacing:.05em">%</th>
-      </tr></thead>
-      <tbody>${rows}</tbody>
-    </table>
-    <div style="margin-top:32px;text-align:center;font-size:11px;color:#8A8078;border-top:1px solid #EBE4D6;padding-top:14px">Généré par FaciliKit · facilkit.app</div>`;
-  downloadPDF(inner, 'temps-de-parole.pdf');
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF('p','mm','a4');
+  const M=20, tot=PA.total();
+  pdfHeader(doc,'RAPPORT D\'ATELIER','Temps de parole');
+  doc.setFontSize(9);doc.setFont('helvetica','normal');doc.setTextColor(138,128,120);
+  doc.text(`Généré le ${new Date().toLocaleString('fr-FR')}`,M,36);
+  const rows=PA.parts.map(p=>[p.name,fmtSec(p.time),Math.round(p.time/(tot||1)*100)+'%']);
+  doc.autoTable({
+    startY:44,
+    head:[['Participant','Temps','%']],
+    body:rows,
+    headStyles:{fillColor:[26,26,26],textColor:[255,255,255],fontSize:10,fontStyle:'bold'},
+    bodyStyles:{fontSize:11,textColor:[26,26,26]},
+    alternateRowStyles:{fillColor:[245,240,232]},
+    columnStyles:{1:{halign:'center',cellWidth:30},2:{halign:'center',cellWidth:20}},
+    margin:{left:M,right:M}
+  });
+  pdfFooter(doc);
+  doc.save('temps-de-parole.pdf');
 }
 function fmtSec(s){ return `${pad(Math.floor(s/60))}:${pad(s%60)}`; }
 
@@ -1091,43 +1092,54 @@ const PL = {
     PL.updateTotal();
   },
   exportPDF(){
-    const d=PL.data;
+    const {jsPDF}=window.jspdf;
+    const doc=new jsPDF('p','mm','a4');
+    const d=PL.data, W=210, M=20;
     const tot=d.phases.reduce((s,p)=>s+(parseInt(p.duration)||0),0);
-    const h=Math.floor(tot/60),m=tot%60;
-    const rows=d.phases.map((p,i)=>`
-      <tr>
-        <td style="padding:10px 12px;border-bottom:1px solid #EBE4D6;font-size:12px;color:#8A8078;vertical-align:top">${i+1}</td>
-        <td style="padding:10px 12px;border-bottom:1px solid #EBE4D6;font-size:13px;vertical-align:top"><strong>${escHtml(p.name)||'—'}</strong>${p.desc?`<br><span style="color:#8A8078;font-size:11px">${escHtml(p.desc)}</span>`:''}</td>
-        <td style="padding:10px 12px;border-bottom:1px solid #EBE4D6;font-size:13px;vertical-align:top;white-space:nowrap">${p.duration} min</td>
-        <td style="padding:10px 12px;border-bottom:1px solid #EBE4D6;font-size:13px;vertical-align:top">${escHtml(p.tool)||'—'}</td>
-      </tr>`).join('');
-    const metaItems=[
-      d.date?`<div style="text-align:center"><div style="font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#8A8078;margin-bottom:3px">Date</div><div style="font-size:.9rem;font-weight:500">${d.date}</div></div>`:'',
-      d.fac?`<div style="text-align:center"><div style="font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#8A8078;margin-bottom:3px">Facilitateur·trice</div><div style="font-size:.9rem;font-weight:500">${escHtml(d.fac)}</div></div>`:'',
-      d.loc?`<div style="text-align:center"><div style="font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#8A8078;margin-bottom:3px">Lieu</div><div style="font-size:.9rem;font-weight:500">${escHtml(d.loc)}</div></div>`:'',
-      `<div style="text-align:center"><div style="font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#8A8078;margin-bottom:3px">Durée totale</div><div style="font-size:.9rem;font-weight:500">${h?h+'h ':''} ${m?m+' min':'—'}</div></div>`,
-      `<div style="text-align:center"><div style="font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#8A8078;margin-bottom:3px">Phases</div><div style="font-size:.9rem;font-weight:500">${d.phases.length}</div></div>`
-    ].filter(Boolean).join('');
-    const inner=`
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #C96B3A;padding-bottom:14px;margin-bottom:18px">
-        <div><div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#C96B3A;margin-bottom:6px">Plan d'atelier</div>
-        <div style="font-size:1.7rem;font-weight:700;color:#1A1A1A">${escHtml(d.name)||'Atelier sans titre'}</div></div>
-        <div style="font-size:1.1rem;font-weight:700;color:#C96B3A">FaciliKit</div>
-      </div>
-      <div style="display:flex;gap:24px;flex-wrap:wrap;background:#F5F0E8;padding:16px;border-radius:8px;margin-bottom:20px">${metaItems}</div>
-      <table style="width:100%;border-collapse:collapse">
-        <thead><tr>
-          <th style="background:#1A1A1A;color:#fff;text-align:left;padding:9px 12px;font-size:11px;text-transform:uppercase;letter-spacing:.04em">#</th>
-          <th style="background:#1A1A1A;color:#fff;text-align:left;padding:9px 12px;font-size:11px;text-transform:uppercase;letter-spacing:.04em">Phase / Activité</th>
-          <th style="background:#1A1A1A;color:#fff;text-align:left;padding:9px 12px;font-size:11px;text-transform:uppercase;letter-spacing:.04em">Durée</th>
-          <th style="background:#1A1A1A;color:#fff;text-align:left;padding:9px 12px;font-size:11px;text-transform:uppercase;letter-spacing:.04em">Outil</th>
-        </tr></thead>
-        <tbody>${rows}</tbody>
-      </table>
-      ${d.notes?`<div style="margin-top:22px;padding:16px;border:1px solid #EBE4D6;border-radius:8px"><strong style="font-size:.85rem">Notes générales</strong><p style="margin:8px 0 0;color:#3D3730;line-height:1.7;font-size:.85rem">${escHtml(d.notes).replace(/\n/g,'<br>')}</p></div>`:''}
-      <div style="margin-top:32px;text-align:center;font-size:11px;color:#8A8078;border-top:1px solid #EBE4D6;padding-top:14px">Généré par FaciliKit · facilkit.app</div>`;
+    const h=Math.floor(tot/60), m=tot%60;
+    pdfHeader(doc,'PLAN D\'ATELIER',d.name||'Atelier sans titre');
+    // Meta box
+    const metaItems=[];
+    if(d.date) metaItems.push({l:'Date',v:d.date});
+    if(d.fac)  metaItems.push({l:'Facilitateur·trice',v:d.fac});
+    if(d.loc)  metaItems.push({l:'Lieu',v:d.loc});
+    metaItems.push({l:'Durée totale',v:(h?h+'h ':'')+( m?m+' min':'—')});
+    metaItems.push({l:'Phases',v:String(d.phases.length)});
+    const mY=34, mH=20, mCW=(W-M*2)/metaItems.length;
+    doc.setFillColor(245,240,232); doc.roundedRect(M,mY,W-M*2,mH,2,2,'F');
+    metaItems.forEach((item,i)=>{
+      const x=M+i*mCW+mCW/2;
+      doc.setFontSize(7);doc.setFont('helvetica','bold');doc.setTextColor(138,128,120);
+      doc.text(item.l.toUpperCase(),x,mY+7,{align:'center'});
+      doc.setFontSize(9);doc.setFont('helvetica','bold');doc.setTextColor(61,55,48);
+      doc.text(String(item.v),x,mY+15,{align:'center'});
+    });
+    // Table
+    const rows=d.phases.map((p,i)=>[String(i+1),p.name||'—',(p.duration||'—')+' min',p.tool||'—']);
+    doc.autoTable({
+      startY:mY+mH+6,
+      head:[['#','Phase / Activité','Durée','Outil']],
+      body:rows,
+      headStyles:{fillColor:[26,26,26],textColor:[255,255,255],fontSize:9,fontStyle:'bold'},
+      bodyStyles:{fontSize:10,textColor:[26,26,26],valign:'top'},
+      alternateRowStyles:{fillColor:[245,240,232]},
+      columnStyles:{0:{cellWidth:10,halign:'center'},2:{cellWidth:22,halign:'center'},3:{cellWidth:38}},
+      margin:{left:M,right:M}
+    });
+    // Notes
+    if(d.notes){
+      let nY=doc.lastAutoTable.finalY+8;
+      const noteLines=doc.splitTextToSize(d.notes,W-M*2-10);
+      const nH=noteLines.length*5+14;
+      doc.setFillColor(245,240,232); doc.roundedRect(M,nY,W-M*2,nH,2,2,'F');
+      doc.setFontSize(8);doc.setFont('helvetica','bold');doc.setTextColor(61,55,48);
+      doc.text('Notes générales',M+5,nY+7);
+      doc.setFontSize(9);doc.setFont('helvetica','normal');
+      doc.text(noteLines,M+5,nY+13);
+    }
+    pdfFooter(doc);
     const safeName=(d.name||'atelier').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
-    downloadPDF(inner, `plan-${safeName}.pdf`);
+    doc.save(`plan-${safeName}.pdf`);
   },
   clearAll(){
     if(!confirm('Effacer tout le plan ?')) return;
@@ -1230,33 +1242,70 @@ function toolModalCloseBtn(){ document.getElementById('tool-modal').classList.re
 function toolPDF(){ if(currentToolId) toolPDFById(currentToolId); }
 function toolPDFById(id){
   const t=TOOLS.find(x=>x.id===id); if(!t) return;
-  const steps=t.steps.map((s,i)=>`
-    <li style="margin-bottom:12px;display:flex;gap:12px;align-items:flex-start">
-      <span style="width:24px;height:24px;background:#C96B3A;color:white;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px">${i+1}</span>
-      <span style="font-size:13px;line-height:1.6;color:#3D3730">${s}</span>
-    </li>`).join('');
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF('p','mm','a4');
+  const W=210, M=20;
+  let y=0;
+  // Terra bar
+  doc.setFillColor(201,107,58); doc.rect(0,0,W,3,'F');
+  // Phase badge
+  doc.setFillColor(254,235,220); doc.roundedRect(M,10,38,7,1.5,1.5,'F');
+  doc.setFontSize(7);doc.setFont('helvetica','bold');doc.setTextColor(201,107,58);
+  doc.text(t.phaseLabel.toUpperCase(),M+19,15.5,{align:'center'});
+  // Title
+  doc.setFontSize(22);doc.setFont('helvetica','bold');doc.setTextColor(26,26,26);
+  doc.text(t.name,M,29);
+  // Brand
+  doc.setFontSize(11);doc.setTextColor(201,107,58);
+  doc.text('FaciliKit',W-M,29,{align:'right'});
+  // Separator
+  doc.setDrawColor(201,107,58);doc.setLineWidth(0.5);doc.line(M,33,W-M,33);doc.setLineWidth(0.2);
+  // Meta box
+  y=39;
   const needs=t.needs.map(n=>NEED_LABELS[n]||n).join(', ');
-  const inner=`
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #C96B3A;padding-bottom:16px;margin-bottom:20px">
-      <div>
-        <span style="display:inline-block;padding:3px 10px;background:rgba(201,107,58,.12);color:#C96B3A;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px">${t.phaseLabel}</span>
-        <div style="font-size:1.8rem;font-weight:700;color:#1A1A1A;line-height:1.15">${t.name}</div>
-      </div>
-      <div style="font-size:1.1rem;font-weight:700;color:#C96B3A">FaciliKit</div>
-    </div>
-    <div style="display:flex;gap:20px;background:#F5F0E8;padding:14px 16px;border-radius:8px;margin-bottom:20px">
-      <div style="text-align:center;flex:1"><div style="font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#8A8078;margin-bottom:3px">Durée</div><div style="font-size:.9rem;font-weight:600;color:#C96B3A">${t.dur}</div></div>
-      <div style="text-align:center;flex:1"><div style="font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#8A8078;margin-bottom:3px">Groupe</div><div style="font-size:.9rem;font-weight:600;color:#C96B3A">${t.grp}</div></div>
-      <div style="text-align:center;flex:2"><div style="font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#8A8078;margin-bottom:3px">Besoin</div><div style="font-size:.85rem;font-weight:600;color:#C96B3A">${needs}</div></div>
-    </div>
-    <div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#8A8078;margin-bottom:8px">Description</div>
-    <p style="font-size:.92rem;line-height:1.75;color:#3D3730;margin-bottom:20px">${t.desc}</p>
-    <div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#8A8078;margin-bottom:10px">Déroulé en pratique</div>
-    <ul style="list-style:none;padding:0;margin:0 0 16px">${steps}</ul>
-    <div style="background:rgba(107,143,113,.1);border-left:3px solid #6B8F71;padding:14px 16px;border-radius:0 8px 8px 0;font-size:.87rem;color:#4E6E54;line-height:1.65">💡 <strong>Conseil du praticien</strong><br>${t.tip}</div>
-    <div style="margin-top:32px;text-align:center;font-size:11px;color:#8A8078;border-top:1px solid #EBE4D6;padding-top:14px">Fiche outil FaciliKit · facilkit.app</div>`;
+  doc.setFillColor(245,240,232); doc.roundedRect(M,y,W-M*2,20,2,2,'F');
+  [{l:'Durée',v:t.dur},{l:'Groupe',v:t.grp},{l:'Besoin',v:needs}].forEach((item,i)=>{
+    const cW=(W-M*2)/3, x=M+i*cW+cW/2;
+    doc.setFontSize(7);doc.setFont('helvetica','bold');doc.setTextColor(138,128,120);
+    doc.text(item.l.toUpperCase(),x,y+7,{align:'center'});
+    doc.setFontSize(9);doc.setFont('helvetica','bold');doc.setTextColor(201,107,58);
+    const vl=doc.splitTextToSize(item.v,cW-6);
+    doc.text(vl[0],x,y+14,{align:'center'});
+  });
+  y+=26;
+  // Description
+  doc.setFontSize(7);doc.setFont('helvetica','bold');doc.setTextColor(138,128,120);
+  doc.text('DESCRIPTION',M,y); y+=5;
+  doc.setFontSize(10);doc.setFont('helvetica','normal');doc.setTextColor(61,55,48);
+  const descL=doc.splitTextToSize(t.desc,W-M*2);
+  doc.text(descL,M,y); y+=descL.length*5+7;
+  // Steps
+  doc.setFontSize(7);doc.setFont('helvetica','bold');doc.setTextColor(138,128,120);
+  doc.text('DÉROULÉ EN PRATIQUE',M,y); y+=5;
+  t.steps.forEach((step,i)=>{
+    doc.setFillColor(201,107,58); doc.circle(M+3,y+1.5,3,'F');
+    doc.setFontSize(7);doc.setFont('helvetica','bold');doc.setTextColor(255,255,255);
+    doc.text(String(i+1),M+3,y+2.8,{align:'center'});
+    doc.setFontSize(9.5);doc.setFont('helvetica','normal');doc.setTextColor(61,55,48);
+    const sl=doc.splitTextToSize(step,W-M*2-10);
+    doc.text(sl,M+9,y+2); y+=sl.length*5+3;
+  });
+  y+=4;
+  // Tip box
+  doc.setFontSize(9);doc.setFont('helvetica','normal');
+  const tipText='Conseil du praticien : '+t.tip;
+  const tipL=doc.splitTextToSize(tipText,W-M*2-12);
+  const tipH=tipL.length*5+10;
+  doc.setFillColor(235,245,236); doc.roundedRect(M,y,W-M*2,tipH,2,2,'F');
+  doc.setDrawColor(107,143,113);doc.setLineWidth(1);doc.line(M,y,M,y+tipH);doc.setLineWidth(0.2);
+  doc.setTextColor(78,110,84); doc.text(tipL,M+6,y+6);
+  // Footer
+  const pH=doc.internal.pageSize.height;
+  doc.setDrawColor(235,228,214);doc.line(M,pH-16,W-M,pH-16);
+  doc.setFontSize(8);doc.setFont('helvetica','normal');doc.setTextColor(138,128,120);
+  doc.text('Fiche outil FaciliKit · facilkit.app',W/2,pH-10,{align:'center'});
   const safeName=t.name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
-  downloadPDF(inner, `fiche-${safeName}.pdf`);
+  doc.save(`fiche-${safeName}.pdf`);
 }
 document.addEventListener('keydown',e=>{ if(e.key==='Escape') toolModalCloseBtn(); });
 
@@ -1285,28 +1334,25 @@ const PARK = {
       </div>`).join('');
   },
   print(){
-    const rows=PARK.items.map(i=>`<tr>
-      <td style="padding:9px 12px;border-bottom:1px solid #EBE4D6;font-size:13px;white-space:nowrap">${PARK.catLabels[i.cat]}</td>
-      <td style="padding:9px 12px;border-bottom:1px solid #EBE4D6;font-size:13px">${escHtml(i.text)}</td>
-      <td style="padding:9px 12px;border-bottom:1px solid #EBE4D6;font-size:12px;color:#8A8078;white-space:nowrap">${i.ts}</td>
-    </tr>`).join('');
-    const inner=`
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #C96B3A;padding-bottom:14px;margin-bottom:18px">
-        <div><div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#C96B3A;margin-bottom:6px">Parking</div>
-        <div style="font-size:1.6rem;font-weight:700;color:#1A1A1A">🅿️ Notes en attente</div></div>
-        <div style="font-size:1.1rem;font-weight:700;color:#C96B3A">FaciliKit</div>
-      </div>
-      <p style="color:#8A8078;font-size:.8rem;margin-bottom:16px">Généré le ${new Date().toLocaleString('fr-FR')}</p>
-      <table style="width:100%;border-collapse:collapse">
-        <thead><tr>
-          <th style="background:#1A1A1A;color:#fff;text-align:left;padding:9px 12px;font-size:11px;text-transform:uppercase;letter-spacing:.05em">Catégorie</th>
-          <th style="background:#1A1A1A;color:#fff;text-align:left;padding:9px 12px;font-size:11px;text-transform:uppercase;letter-spacing:.05em">Contenu</th>
-          <th style="background:#1A1A1A;color:#fff;text-align:left;padding:9px 12px;font-size:11px;text-transform:uppercase;letter-spacing:.05em">Heure</th>
-        </tr></thead>
-        <tbody>${rows}</tbody>
-      </table>
-      <div style="margin-top:32px;text-align:center;font-size:11px;color:#8A8078;border-top:1px solid #EBE4D6;padding-top:14px">Généré par FaciliKit · facilkit.app</div>`;
-    downloadPDF(inner, 'parking.pdf');
+    const {jsPDF}=window.jspdf;
+    const doc=new jsPDF('p','mm','a4');
+    const M=20;
+    pdfHeader(doc,'PARKING','Notes en attente');
+    doc.setFontSize(9);doc.setFont('helvetica','normal');doc.setTextColor(138,128,120);
+    doc.text(`Généré le ${new Date().toLocaleString('fr-FR')}`,M,36);
+    const rows=PARK.items.map(i=>[PARK.catLabels[i.cat],i.text,i.ts]);
+    doc.autoTable({
+      startY:44,
+      head:[['Catégorie','Contenu','Heure']],
+      body:rows,
+      headStyles:{fillColor:[26,26,26],textColor:[255,255,255],fontSize:9,fontStyle:'bold'},
+      bodyStyles:{fontSize:10,textColor:[26,26,26]},
+      alternateRowStyles:{fillColor:[245,240,232]},
+      columnStyles:{0:{cellWidth:38},2:{cellWidth:22,halign:'center'}},
+      margin:{left:M,right:M}
+    });
+    pdfFooter(doc);
+    doc.save('parking.pdf');
   }
 };
 function parkingAdd(){ const inp=document.getElementById('parking-inp'),cat=document.getElementById('parking-cat').value; PARK.add(inp.value,cat); inp.value=''; inp.focus(); }
@@ -1320,18 +1366,21 @@ function parkingPrint(){ PARK.print(); }
 function pad(n){ return String(n).padStart(2,'0'); }
 function escHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
-function downloadPDF(innerHtml, filename){
-  const wrap = document.createElement('div');
-  wrap.style.cssText = 'position:absolute;top:0;left:0;width:794px;padding:40px;background:#ffffff;font-family:sans-serif;color:#1A1A1A;font-size:13px;line-height:1.6;z-index:-9999;';
-  wrap.innerHTML = innerHtml;
-  document.body.appendChild(wrap);
-  html2pdf().set({
-    margin: [10,10,10,10],
-    filename: filename,
-    image: { type:'jpeg', quality:0.97 },
-    html2canvas: { scale:2, useCORS:true, backgroundColor:'#ffffff', logging:false },
-    jsPDF: { unit:'mm', format:'a4', orientation:'portrait' }
-  }).from(wrap).save().then(()=>{ document.body.removeChild(wrap); }).catch(()=>{ document.body.removeChild(wrap); });
+function pdfHeader(doc, label, title){
+  const W=210,M=20;
+  doc.setFillColor(201,107,58); doc.rect(0,0,W,3,'F');
+  doc.setFontSize(8); doc.setFont('helvetica','bold'); doc.setTextColor(201,107,58);
+  doc.text(label,M,18);
+  doc.setFontSize(20); doc.setFont('helvetica','bold'); doc.setTextColor(26,26,26);
+  doc.text(title,M,28);
+  doc.setFontSize(11); doc.setTextColor(201,107,58);
+  doc.text('FaciliKit',W-M,28,{align:'right'});
+}
+function pdfFooter(doc){
+  const W=210,M=20,pH=doc.internal.pageSize.height;
+  doc.setDrawColor(235,228,214); doc.setLineWidth(0.2); doc.line(M,pH-16,W-M,pH-16);
+  doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.setTextColor(138,128,120);
+  doc.text('Généré par FaciliKit · facilkit.app',W/2,pH-10,{align:'center'});
 }
 
 // ════════════════════════════════════════════════════
