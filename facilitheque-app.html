@@ -471,6 +471,7 @@ input,textarea,select{font-family:'DM Sans',sans-serif}
     <section class="panel" id="p-timer">
       <h1 class="panel-title">Minuteur</h1>
       <p class="panel-sub">Décompte visible de loin. Plein écran pour projeter.</p>
+      <p class="panel-sub" style="font-size:.8rem;margin-top:-8px">Minuteur de facilitation avec anneau de progression visuel, presets rapides (5, 10, 15, 20 min) et mode plein écran pour projeter le décompte en atelier. Idéal pour cadrer les activités chronométrées et maintenir le rythme du groupe.</p>
       <div class="timer-wrap">
         <div class="timer-center">
           <div style="width:100%;max-width:320px">
@@ -542,6 +543,7 @@ input,textarea,select{font-family:'DM Sans',sans-serif}
     <section class="panel" id="p-chrono">
       <h1 class="panel-title">Chronomètre</h1>
       <p class="panel-sub">Mesure une durée libre. Enregistre des tours.</p>
+      <p class="panel-sub" style="font-size:.8rem;margin-top:-8px">Chronomètre de facilitation avec gestion des tours et historique. Mesure la durée réelle de chaque activité pour ajuster ton animation en temps réel. Utile pour les débriefs, les tours de table chronométrés et les activités de co-développement.</p>
       <div class="two-col" style="align-items:start">
         <div class="card" style="text-align:center">
           <div class="chrono-display" id="chrono-display">
@@ -566,6 +568,7 @@ input,textarea,select{font-family:'DM Sans',sans-serif}
     <section class="panel" id="p-roulette">
       <h1 class="panel-title">Roulette</h1>
       <p class="panel-sub">Tire un participant au hasard parmi ta liste.</p>
+      <p class="panel-sub" style="font-size:.8rem;margin-top:-8px">Roulette de participants pour facilitation : ajoute les noms du groupe et tire au sort de façon aléatoire et équitable. Outil pour animer les tours de parole, désigner des volontaires ou créer des sous-groupes sans biais.</p>
       <div class="roulette-layout">
         <div>
           <div class="card">
@@ -608,6 +611,7 @@ input,textarea,select{font-family:'DM Sans',sans-serif}
     <section class="panel" id="p-parole">
       <h1 class="panel-title">Temps de parole</h1>
       <p class="panel-sub">Clique sur un participant pour démarrer / stopper son chrono.</p>
+      <p class="panel-sub" style="font-size:.8rem;margin-top:-8px">Outil de gestion du temps de parole en atelier : chronomètre individuel par participant, visualisation des déséquilibres en temps réel. Favorise une prise de parole équilibrée dans les groupes et aide le facilitateur à réguler sans intervenir verbalement.</p>
       <div class="flex-row" style="margin-bottom:20px">
         <input class="input" id="parole-inp" placeholder="Ajouter un participant…" onkeydown="paroleKeydown(event)" style="max-width:280px">
         <button class="btn btn-primary btn-sm" onclick="paroleAdd()">+ Ajouter</button>
@@ -628,6 +632,7 @@ input,textarea,select{font-family:'DM Sans',sans-serif}
     <section class="panel" id="p-sequence">
       <h1 class="panel-title">Séquence de timers</h1>
       <p class="panel-sub">Enchaîne des phases minutées. L'alerte passe automatiquement à la suivante.</p>
+      <p class="panel-sub" style="font-size:.8rem;margin-top:-8px">Séquenceur d'atelier : programme plusieurs phases minutées qui s'enchaînent automatiquement. Idéal pour les ateliers structurés (World Café, design sprint, hackathon) où chaque activité a une durée définie. Passe à la phase suivante avec alerte sonore.</p>
       <div class="two-col" style="align-items:start">
         <div>
           <div class="flex-between" style="margin-bottom:12px">
@@ -663,6 +668,7 @@ input,textarea,select{font-family:'DM Sans',sans-serif}
         <div>
           <h1 class="panel-title">Planificateur d'atelier</h1>
           <p class="panel-sub">Construis ton déroulé. Sauvegardé automatiquement.</p>
+          <p class="panel-sub" style="font-size:.8rem;margin-top:-8px">Planificateur de déroulé d'atelier : crée ton agenda de facilitation phase par phase avec durées, objectifs et matériel. Sauvegarde automatique locale, export PDF prêt à imprimer ou partager avec ton client. Conçu pour les facilitateurs professionnels.</p>
         </div>
         <div style="display:flex;gap:10px">
           <button class="btn btn-secondary btn-sm" onclick="plannerClear()">🗑 Effacer</button>
@@ -712,6 +718,7 @@ input,textarea,select{font-family:'DM Sans',sans-serif}
         <div>
           <h1 class="panel-title">Parking</h1>
           <p class="panel-sub">Capture les idées hors-sujet pendant l'atelier. On y revient après.</p>
+          <p class="panel-sub" style="font-size:.8rem;margin-top:-8px">Parking à idées pour facilitation : capture en temps réel les sujets hors-ordre-du-jour sans interrompre le fil de l'atelier. Permet de valoriser chaque contribution tout en maintenant le focus du groupe. Exportable en fin de session.</p>
         </div>
         <div style="display:flex;gap:8px">
           <button class="btn btn-secondary btn-sm" onclick="parkingPrint()">⬇ Exporter</button>
@@ -742,7 +749,80 @@ input,textarea,select{font-family:'DM Sans',sans-serif}
       <p class="panel-sub">48 outils classés par phase et besoin. Chaque fiche est téléchargeable en PDF.</p>
       <div class="lib-filters" id="lib-phase-filters"></div>
       <div class="lib-filters" id="lib-need-filters"></div>
-      <div class="lib-grid" id="lib-grid"></div>
+      <div class="lib-grid" id="lib-grid">
+        <article class="lib-card" data-phase="production" onclick="toolOpen(1)">
+          <div class="tool-phase-badge ph-production">Production</div>
+          <h2 class="lib-card-name">World Café</h2>
+          <div class="lib-card-meta"><span class="lib-meta-item">90–120 min</span><span class="lib-meta-item">8 à 50 pers.</span></div>
+          <p class="lib-card-desc">Des tables rondes en rotation pour explorer un sujet sous différents angles. La pollinisation croisée des idées entre tables crée une intelligence collective qui dépasse la somme des individus.</p>
+        </article>
+        <article class="lib-card" data-phase="ouverture" onclick="toolOpen(2)">
+          <div class="tool-phase-badge ph-ouverture">Ouverture</div>
+          <h2 class="lib-card-name">1-2-4-All</h2>
+          <div class="lib-card-meta"><span class="lib-meta-item">12–15 min</span><span class="lib-meta-item">4 à 100+ pers.</span></div>
+          <p class="lib-card-desc">Chacun réfléchit seul, puis en binôme, en quatuor, puis partage en grand groupe. Structure libératrice qui garantit que chaque voix compte, même dans un grand groupe.</p>
+        </article>
+        <article class="lib-card" data-phase="cloture" onclick="toolOpen(3)">
+          <div class="tool-phase-badge ph-cloture">Clôture</div>
+          <h2 class="lib-card-name">Dot Voting</h2>
+          <div class="lib-card-meta"><span class="lib-meta-item">10–20 min</span><span class="lib-meta-item">3 à 30 pers.</span></div>
+          <p class="lib-card-desc">Chaque participant dispose d'un nombre limité de gommettes à attribuer librement aux idées affichées. Le résultat est immédiatement visible et légitime.</p>
+        </article>
+        <article class="lib-card" data-phase="production" onclick="toolOpen(4)">
+          <div class="tool-phase-badge ph-production">Production</div>
+          <h2 class="lib-card-name">Fishbowl</h2>
+          <div class="lib-card-meta"><span class="lib-meta-item">45–75 min</span><span class="lib-meta-item">8 à 40 pers.</span></div>
+          <p class="lib-card-desc">Un cercle intérieur débat en direct pendant que le reste du groupe observe. Favorise l'écoute profonde et permet de traiter des tensions sans que la salle entière s'embrase.</p>
+        </article>
+        <article class="lib-card" data-phase="cloture" onclick="toolOpen(5)">
+          <div class="tool-phase-badge ph-cloture">Clôture</div>
+          <h2 class="lib-card-name">Speedboat</h2>
+          <div class="lib-card-meta"><span class="lib-meta-item">30–45 min</span><span class="lib-meta-item">4 à 20 pers.</span></div>
+          <p class="lib-card-desc">Une métaphore visuelle pour identifier ce qui propulse le groupe (moteurs) et ce qui le freine (ancres). Idéal pour les rétrospectives d'équipe.</p>
+        </article>
+        <article class="lib-card" data-phase="ouverture" onclick="toolOpen(6)">
+          <div class="tool-phase-badge ph-ouverture">Ouverture</div>
+          <h2 class="lib-card-name">Check-in Météo</h2>
+          <div class="lib-card-meta"><span class="lib-meta-item">5–15 min</span><span class="lib-meta-item">4 à 20 pers.</span></div>
+          <p class="lib-card-desc">Chaque participant décrit son état du moment à travers une météo. Un rituel d'ouverture simple qui crée immédiatement de la présence et de la connexion.</p>
+        </article>
+        <article class="lib-card" data-phase="production" onclick="toolOpen(7)">
+          <div class="tool-phase-badge ph-production">Production</div>
+          <h2 class="lib-card-name">Six Chapeaux de Bono</h2>
+          <div class="lib-card-meta"><span class="lib-meta-item">60–90 min</span><span class="lib-meta-item">4 à 15 pers.</span></div>
+          <p class="lib-card-desc">Six chapeaux de couleur représentent six modes de pensée. Le groupe explore une décision sous chaque chapeau simultanément, évitant les débats d'ego.</p>
+        </article>
+        <article class="lib-card" data-phase="apres" onclick="toolOpen(8)">
+          <div class="tool-phase-badge ph-apres">Après l'atelier</div>
+          <h2 class="lib-card-name">ROTI</h2>
+          <div class="lib-card-meta"><span class="lib-meta-item">5–10 min</span><span class="lib-meta-item">4 à 100+ pers.</span></div>
+          <p class="lib-card-desc">Return On Time Invested — chaque participant note l'atelier de 1 à 5 selon ce que la session lui a apporté par rapport au temps investi.</p>
+        </article>
+        <article class="lib-card" data-phase="avant" onclick="toolOpen(9)">
+          <div class="tool-phase-badge ph-avant">Avant l'atelier</div>
+          <h2 class="lib-card-name">Carte d'Empathie</h2>
+          <div class="lib-card-meta"><span class="lib-meta-item">45–60 min</span><span class="lib-meta-item">2 à 12 pers.</span></div>
+          <p class="lib-card-desc">Un canevas visuel pour se mettre dans la peau d'un utilisateur : ce qu'il voit, entend, pense, ressent, dit et fait. Essentiel pour cadrer un atelier centré sur l'humain.</p>
+        </article>
+        <article class="lib-card" data-phase="cloture" onclick="toolOpen(10)">
+          <div class="tool-phase-badge ph-cloture">Clôture</div>
+          <h2 class="lib-card-name">Hot Air Balloon</h2>
+          <div class="lib-card-meta"><span class="lib-meta-item">30–45 min</span><span class="lib-meta-item">4 à 20 pers.</span></div>
+          <p class="lib-card-desc">Une montgolfière symbolise l'ambition du groupe. Les sacs de sable (obstacles), le vent (tendances) et les trous dans la nacelle (risques) permettent d'explorer la trajectoire collectivement.</p>
+        </article>
+        <article class="lib-card" data-phase="production" onclick="toolOpen(11)">
+          <div class="tool-phase-badge ph-production">Production</div>
+          <h2 class="lib-card-name">Troika Consulting</h2>
+          <div class="lib-card-meta"><span class="lib-meta-item">30–45 min</span><span class="lib-meta-item">3 à 30 pers.</span></div>
+          <p class="lib-card-desc">En groupes de 3, une personne expose un défi pendant que les deux autres débattent dans son dos. Puissant et libérateur pour le co-développement professionnel.</p>
+        </article>
+        <article class="lib-card" data-phase="cloture" onclick="toolOpen(12)">
+          <div class="tool-phase-badge ph-cloture">Clôture</div>
+          <h2 class="lib-card-name">Plan d'Action POST</h2>
+          <div class="lib-card-meta"><span class="lib-meta-item">20–30 min</span><span class="lib-meta-item">4 à 25 pers.</span></div>
+          <p class="lib-card-desc">Un cadre de clôture rigoureux : POST = Priorité, Owner (responsable), Steps (étapes), Timeline. Garantit que rien ne disparaît dans les boîtes mail après l'atelier.</p>
+        </article>
+      </div>
     </section>
 
   </main>
